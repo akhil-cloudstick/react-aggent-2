@@ -70,9 +70,106 @@ export default function DashboardPage() {
     }
   };
 
+    const getAssignedSubtaskCountForProject = (projectId: string) => {
+    const projectTaskIds = tasks.filter(t => t.projectId === projectId).map(t => t.id);
+    return subtasks.filter(st => projectTaskIds.includes(st.taskId) && st.assignedToUserId === currentUser.id).length;
+  };
+  const getAssignedSubtaskCountForTask = (taskId: string) => {
+    return subtasks.filter(st => st.taskId === taskId && st.assignedToUserId === currentUser.id).length;
+  };
+
   return (
-    <div className="space-y-6 flex flex-col h-full">
-      {/* ... your existing JSX for selects, textarea, button, cards ... */}
+    <div className="space-y-6 flex flex-col h-full ">
+      <div className="space-y-6 flex flex-col h-full">
+      <div className="space-y-2">
+        <h2 className="text-2xl font-bold">Hi, {currentUser.name}</h2>
+      </div>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="project-select">Projects</Label>
+          <Select value={selectedProjectId} onValueChange={(value) => { setSelectedProjectId(value); setSelectedTaskId(undefined); setSelectedSubtaskId(undefined); }}>
+            <SelectTrigger id="project-select"><SelectValue placeholder="Select a project" /></SelectTrigger>
+            <SelectContent>
+              {projects.map(project => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name} ({getAssignedSubtaskCountForProject(project.id)} assigned)
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="task-select">Tasks</Label>
+            <Select value={selectedTaskId} onValueChange={(value) => { setSelectedTaskId(value); setSelectedSubtaskId(undefined); }} disabled={!selectedProjectId}>
+              <SelectTrigger id="task-select"><SelectValue placeholder="Select a task" /></SelectTrigger>
+              <SelectContent>
+                {filteredTasks.map(task => (
+                  <SelectItem key={task.id} value={task.id}>
+                    {task.name} ({getAssignedSubtaskCountForTask(task.id)} assigned)
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+        </div>
+        <div className="space-y-2">
+            <Label htmlFor="subtask-select">Subtasks</Label>
+            <Select value={selectedSubtaskId} onValueChange={setSelectedSubtaskId} disabled={!selectedTaskId}>
+              <SelectTrigger id="subtask-select"><SelectValue placeholder="Select a subtask" /></SelectTrigger>
+              <SelectContent>
+                {filteredSubtasks.map(subtask => (
+                    <SelectItem key={subtask.id} value={subtask.id}>
+                      {subtask.name}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+        </div>
+      </div>
+      <div className="space-y-2">
+          <Label htmlFor="description">Work Note Entry</Label>
+          <Textarea 
+              id="description"
+              placeholder={selectedSubtask ? selectedSubtask.description : "Add a description of your work..."}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="h-24"
+              disabled={!selectedSubtask}
+          />
+      </div>
+      
+      <Button className="w-full bg-gray-300 hover:bg-gray-200 text-accent-foreground" onClick={handleStart} disabled={!selectedSubtaskId}>
+        Start Work
+      </Button>
+      <Separator />
+      <div className="space-y-2">
+        <h5 className="text-xl font-bold">Work History</h5>
+      </div>
+      {workedOnSubtasks.length > 0 ? (
+        <div className="space-y-4 flex-1 overflow-y-auto pr-2 -mr-2">
+          {workedOnSubtasks.map(subtask => (
+            <Card key={subtask.id} className="cursor-pointer hover:bg-secondary/50" >
+                <CardHeader className="p-4">
+                  <CardTitle className="text-base flex justify-between items-center">
+                    <span>{subtask.name}</span>
+                    <Badge variant="secondary">{formatSeconds(subtask.totalTime)}</Badge>
+                  </CardTitle>
+                  <CardDescription>{subtask.projectName} / {subtask.taskName}</CardDescription>
+                </CardHeader>
+              </Card>
+          ))}
+        </div>
+      ) : (
+        <div className="flex-1 flex items-center justify-center text-center">
+            <Card className="p-6 border-dashed">
+                <CardHeader>
+                    <CardTitle>No Activity Yet</CardTitle>
+                    <CardDescription>You haven't tracked any work yet. Select a subtask to get started.</CardDescription>
+                </CardHeader>
+            </Card>
+        </div>
+      )}
+    </div>
     </div>
   );
 }

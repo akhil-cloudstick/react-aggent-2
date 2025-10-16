@@ -7,13 +7,13 @@ export interface PlaceHolderImage {
 
 export const PlaceHolderImages: PlaceHolderImage[] = [
   {
-    id: 'subtask1',
-    imageUrl: 'https://via.placeholder.com/500x300?text=Screenshot+1',
+    id: 'ss-1',
+    imageUrl: 'https://media.istockphoto.com/id/517188688/photo/mountain-landscape.jpg?s=612x612&w=0&k=20&c=A63koPKaCyIwQWOTFBRWXj_PwCrR4cEoOw2S9Q7yVl8=',
     description: 'Screenshot 1',
     imageHint: 'Main window screenshot',
   },
   {
-    id: 'subtask2',
+    id: 'sub-9',
     imageUrl: 'https://via.placeholder.com/500x300?text=Screenshot+2',
     description: 'Screenshot 2',
     imageHint: 'Secondary window screenshot',

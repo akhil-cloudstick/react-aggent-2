@@ -33,7 +33,11 @@ export default function WorkSessionPage() {
   const navigate = useNavigate();
   const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer, workLog } = useTime();
   const [screenshots, setScreenshots] = useState<Screenshot[]>(mockScreenshots);
-
+useEffect(()=>{
+  console.log('====================================');
+  console.log(screenshots);
+  console.log('====================================');
+},[screenshots])
   useEffect(() => {
     if (!isTimerRunning && subtaskId) startTimer(subtaskId);
   }, [isTimerRunning, startTimer, subtaskId]);
@@ -73,14 +77,17 @@ export default function WorkSessionPage() {
           return (
             <Card key={currentScreenshot.id} className="relative group overflow-hidden">
               <CardContent className="p-0">
-                {placeholder && (
+                <div>
+                   {currentScreenshot && (
                   <img
-                    src={placeholder.imageUrl}
-                    alt={placeholder.description}
+                    src={currentScreenshot.imageUrl}
+                    alt={currentScreenshot.imageHint}
                     className="w-full h-auto object-cover"
                   />
                 )}
 
+                </div>
+               
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm p-2 text-white">
                   <div className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-1">
