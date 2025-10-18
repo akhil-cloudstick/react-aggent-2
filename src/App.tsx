@@ -1,6 +1,8 @@
 // App.tsx
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// 🚀 FINAL FIX: Changed BrowserRouter to HashRouter for compatibility 
+// with Electron's file:// protocol.
+import { HashRouter, Routes, Route } from "react-router-dom"; 
 
 import MainLayout from "./components/AppLayout";
 import LoginPage from "./pages/LoginPage";
@@ -13,7 +15,8 @@ import { TimeProvider } from "./contexts/TimeContext"; // import your provider
 function App() {
   return (
     <TimeProvider>
-      <BrowserRouter>
+      {/* 🚀 Changed BrowserRouter to HashRouter */}
+      <HashRouter> 
         <Routes>
           <Route path="/" element={<LoginPage />} />
           <Route
@@ -41,7 +44,7 @@ function App() {
             }
           />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
     </TimeProvider>
   );
 }

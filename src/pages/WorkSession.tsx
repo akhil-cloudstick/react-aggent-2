@@ -33,14 +33,10 @@ export default function WorkSessionPage() {
   const navigate = useNavigate();
   const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer, workLog } = useTime();
   const [screenshots, setScreenshots] = useState<Screenshot[]>(mockScreenshots);
-useEffect(()=>{
-  console.log('====================================');
-  console.log(screenshots);
-  console.log('====================================');
-},[screenshots])
+
   useEffect(() => {
     if (!isTimerRunning && subtaskId) startTimer(subtaskId);
-  }, [isTimerRunning, startTimer, subtaskId]);
+  }, [subtaskId]);
 
   const handleToggle = (isRunning: boolean) => {
     setTimerRunning(isRunning);
