@@ -9,6 +9,7 @@ import { Separator } from "../components/ui/separator";
 import { Textarea } from "../components/ui/textarea";
 import { projects, tasks, subtasks, users } from "../lib/data";
 import { useTime } from "../contexts/TimeContext";
+import { useMonitoring } from '../hooks/useMonitoring'; // 🚀 NEW
 
 const currentUser = users.find((u) => u.email === "akhil@example.com")!;
 
@@ -27,6 +28,9 @@ export default function DashboardPage() {
   const [selectedTaskId, setSelectedTaskId] = useState<string>();
   const [selectedSubtaskId, setSelectedSubtaskId] = useState<string>();
   const [description, setDescription] = useState("");
+
+
+
 
   const workedOnSubtasks = useMemo(() => {
     return Object.keys(workLog)
@@ -63,9 +67,12 @@ export default function DashboardPage() {
     return subtasks.find((subtask) => subtask.id === selectedSubtaskId);
   }, [selectedSubtaskId]);
 
+  const { startMonitoring } = useMonitoring(selectedSubtaskId);
+
   const handleStart = () => {
     if (selectedSubtaskId) {
       startTimer(selectedSubtaskId);
+      startMonitoring();
       navigate(`/work-session/${selectedSubtaskId}`);
     }
   };
@@ -153,8 +160,9 @@ export default function DashboardPage() {
                   className="cursor-pointer px-2 py-0.5 text-xs hover:bg-secondary/50"
                   title={`${subtask.name} - ${formatSeconds(subtask.totalTime)}`}
                   onClick={() => {
-                    startTimer(subtask.id); // start timer for clicked subtask
-                    navigate(`/work-session/${subtask.id}`); // navigate to its page
+                    startTimer(subtask.id); // 1. Start timer for clicked subtask
+                    startMonitoring(); // 2. 🚀 This line correctly restarts monitoring!
+                    navigate(`/work-session/${subtask.id}`); // 3. Navigate to its page
                   }}
                 >
                   {subtask.name} - {formatSeconds(subtask.totalTime)}

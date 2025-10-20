@@ -20,6 +20,7 @@ import type { Screenshot } from "../lib/definitions";
 import { useTime } from "../contexts/TimeContext";
 import { X, Clock, Keyboard, MousePointerClick } from "lucide-react";
 import { PlaceHolderImages } from '../lib/placeholder-images';
+import { useMonitoring } from '../hooks/useMonitoring'; // 🚀 NEW
 
 const formatSeconds = (seconds: number) => {
   const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
@@ -33,15 +34,22 @@ export default function WorkSessionPage() {
   const navigate = useNavigate();
   const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer, workLog } = useTime();
   const [screenshots, setScreenshots] = useState<Screenshot[]>(mockScreenshots);
+  const { startMonitoring, stopMonitoring } = useMonitoring(subtaskId); // Pass subtaskId for context
 
   useEffect(() => {
-    if (!isTimerRunning && subtaskId) startTimer(subtaskId);
+    if (!isTimerRunning && subtaskId) {
+      // In case of a refresh, restart timer/monitoring
+      startTimer(subtaskId);
+      startMonitoring(); // 🚀 NEW: Restart monitoring on refresh/initial load
+    }
   }, [subtaskId]);
 
   const handleToggle = (isRunning: boolean) => {
     setTimerRunning(isRunning);
     if (!isRunning) {
       stopTimer();
+      // 🚀 NEW: Stop the Electron monitoring
+      stopMonitoring();
       navigate("/dashboard");
     }
   };
@@ -74,16 +82,16 @@ export default function WorkSessionPage() {
             <Card key={currentScreenshot.id} className="relative group overflow-hidden">
               <CardContent className="p-0">
                 <div>
-                   {currentScreenshot && (
-                  <img
-                    src={currentScreenshot.imageUrl}
-                    alt={currentScreenshot.imageHint}
-                    className="w-full h-auto object-cover"
-                  />
-                )}
+                  {currentScreenshot && (
+                    <img
+                      src={currentScreenshot.imageUrl}
+                      alt={currentScreenshot.imageHint}
+                      className="w-full h-auto object-cover"
+                    />
+                  )}
 
                 </div>
-               
+
                 <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm p-2 text-white">
                   <div className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-1">
