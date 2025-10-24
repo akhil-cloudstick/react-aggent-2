@@ -110,7 +110,7 @@ globalKeyListener.addListener((e, down) => {
 // =========================================================================
 
 /**
- * Continuously polls the mouse position and updates mouseMovements count.
+ * Continuously polls the mouse position and updates mouseMovements count.0
  */
 const startMouseMovementPolling = () => {
     // Only start polling if it's not already running

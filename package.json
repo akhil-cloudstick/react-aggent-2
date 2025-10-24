@@ -79,11 +79,15 @@
       "icon.ico",
       "icon.png",
       "icon.icns",
-      "dist/**/*"
+      "dist/**/*",
+      "!**/node-global-key-listener/bin/MacKeyServer"
     ],
     "win": {
       "target": "nsis",
       "icon": "icon.ico"
+    },
+    "directories": {
+      "output": "dist"
     },
     "linux": {
       "target": [
