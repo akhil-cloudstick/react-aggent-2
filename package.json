@@ -8,7 +8,7 @@
     "start": "concurrently \"npm run start-react\" \"npm run start-electron\"",
     "dev": "vite",
     "start-react": "npm run dev",
-    "start-electron": "wait-on tcp:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron app.js",
+    "start-electron": "wait-on tcp:5173 && cross-env ELECTRON_START_URL=http://localhost:5173 electron electron/app.js",
     "build-react": "vite build",
     "dist": "npm run build-react && electron-builder"
   },

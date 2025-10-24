@@ -72,7 +72,7 @@ export default function DashboardPage() {
   const handleStart = () => {
     if (selectedSubtaskId) {
       startTimer(selectedSubtaskId);
-      startMonitoring();
+      startMonitoring(selectedSubtaskId);
       navigate(`/work-session/${selectedSubtaskId}`);
     }
   };
@@ -161,7 +161,7 @@ export default function DashboardPage() {
                   title={`${subtask.name} - ${formatSeconds(subtask.totalTime)}`}
                   onClick={() => {
                     startTimer(subtask.id); // 1. Start timer for clicked subtask
-                    startMonitoring(); // 2. 🚀 This line correctly restarts monitoring!
+                    startMonitoring(subtask.id); // 2. 🚀 This line correctly restarts monitoring!
                     navigate(`/work-session/${subtask.id}`); // 3. Navigate to its page
                   }}
                 >
