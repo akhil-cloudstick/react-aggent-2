@@ -13,7 +13,7 @@ export default function DiaryPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-muted-foreground">This feature is coming soon!</p>
-          <Button onClick={() => navigate(-1)}>Go Back</Button>
+          <Button onClick={() => navigate("/dashboard")}>Go Back</Button>
         </CardContent>
       </Card>
     </div>

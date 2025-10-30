@@ -9,7 +9,7 @@ import { Separator } from "../components/ui/separator";
 import { Textarea } from "../components/ui/textarea";
 import { projects, tasks, subtasks, users } from "../lib/data";
 import { useTime } from "../contexts/TimeContext";
-import { useMonitoring } from '../hooks/useMonitoring'; // 🚀 NEW
+import { useMonitoring } from '../hooks/useMonitoring'; 
 
 const currentUser = users.find((u) => u.email === "akhil@example.com")!;
 
@@ -145,7 +145,7 @@ export default function DashboardPage() {
           />
         </div>
 
-        <Button className="w-full bg-gray-300 hover:bg-gray-200 text-accent-foreground" onClick={handleStart} disabled={!selectedSubtaskId}>
+        <Button className="w-full bg-blue-600 hover:bg-blue-800 text-accent-foreground" onClick={handleStart} disabled={!selectedSubtaskId}>
           Start Work
         </Button>
         <Separator />
@@ -157,7 +157,7 @@ export default function DashboardPage() {
                 <Badge
                   key={subtask.id}
                   variant="secondary"
-                  className="cursor-pointer px-2 py-0.5 text-xs hover:bg-secondary/50"
+                  className="cursor-pointer px-2 py-0.5 text-xs !bg-blue-600 hover:!bg-blue-800/70"
                   title={`${subtask.name} - ${formatSeconds(subtask.totalTime)}`}
                   onClick={() => {
                     startTimer(subtask.id); // 1. Start timer for clicked subtask

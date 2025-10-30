@@ -34,22 +34,22 @@ export default function WorkSessionPage() {
   const navigate = useNavigate();
   const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer, workLog } = useTime();
   const [screenshots, setScreenshots] = useState<Screenshot[]>(mockScreenshots);
-  const { startMonitoring, stopMonitoring } = useMonitoring(subtaskId); // Pass subtaskId for context
+  const { startMonitoring, stopMonitoring, latestLogEntry } = useMonitoring(subtaskId); // Pass subtaskId for context
 
   useEffect(() => {
     if (!isTimerRunning && subtaskId) {
-      // In case of a refresh, restart timer/monitoring
       startTimer(subtaskId);
-      startMonitoring(); // 🚀 NEW: Restart monitoring on refresh/initial load
+      startMonitoring(subtaskId);
     }
   }, [subtaskId]);
-
   const handleToggle = (isRunning: boolean) => {
     setTimerRunning(isRunning);
     if (!isRunning) {
       stopTimer();
-      // 🚀 NEW: Stop the Electron monitoring
-      stopMonitoring();
+      console.log("id:", subtaskId)
+      if (subtaskId) {
+        stopMonitoring(subtaskId);
+      }
       navigate("/dashboard");
     }
   };
@@ -57,36 +57,33 @@ export default function WorkSessionPage() {
   const subtask = subtasks.find((st) => st.id === subtaskId);
   const assignedUser = users.find((u) => u.id === subtask?.assignedToUserId);
   if (!subtask || !assignedUser) return <div>Subtask not found.</div>;
-
-  const totalSubtaskTime = (workLog[subtaskId!] || 0) + sessionWorkSeconds;
+  const totalSubtaskTime = 0 + sessionWorkSeconds;
   const currentScreenshot = screenshots[0] || null;
-
   const handleDelete = (id: string) => setScreenshots(screenshots.filter((ss) => ss.id !== id));
 
   return (
     <div className="flex flex-col h-full space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">{subtask.name}</h2>
-        <div className="flex items-center space-y-2">
-          <Label className={`font-semibold ${isTimerRunning ? "text-primary" : "text-muted-foreground"}`}>
+        <div className="flex items-center gap-2 space-y-2">
+          <Label className={`font-semibold ${isTimerRunning ? "text-primary" : "text-muted-foreground"} m-0`}>
             {isTimerRunning ? "Start" : "Stop"}
           </Label>
-          <Switch checked={isTimerRunning} onCheckedChange={handleToggle} />
+          <Switch className="bg-[#0b2479]" checked={isTimerRunning} onCheckedChange={handleToggle} />
         </div>
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-4 pr-2 -mr-2">
-        {currentScreenshot && (() => {
-          const placeholder = PlaceHolderImages.find((p) => p.id === currentScreenshot.id);
+        {latestLogEntry && (() => {
+          const placeholder = PlaceHolderImages.find((p) => p.id === latestLogEntry.subtaskId);
           return (
-            <Card key={currentScreenshot.id} className="relative group overflow-hidden">
+            <Card key={latestLogEntry.subtaskId} className="relative group overflow-hidden">
               <CardContent className="p-0">
                 <div>
-                  {currentScreenshot && (
+                  {latestLogEntry.screenshot && (
                     <img
-                      src={currentScreenshot.imageUrl}
-                      alt={currentScreenshot.imageHint}
-                      className="w-full h-auto object-cover"
+                      src={`data:image/jpeg;base64,${latestLogEntry.screenshot}`}
+                      alt={`Screenshot for subtask ${latestLogEntry.subtaskId} taken at ${new Date(latestLogEntry.timestamp).toLocaleTimeString()}`} className="w-full h-auto object-cover"
                     />
                   )}
 
@@ -96,15 +93,17 @@ export default function WorkSessionPage() {
                   <div className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-1">
                       <Clock size={12} />
-                      <span>{currentScreenshot.time}</span>
+                      <span>
+                        {new Date(latestLogEntry.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Keyboard size={12} />
-                      <span>{currentScreenshot.keyboardStrokes}</span>
+                      <span>{latestLogEntry.keyActions}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <MousePointerClick size={12} />
-                      <span>{currentScreenshot.mouseMovements}</span>
+                      <span>{latestLogEntry.mouseActions}</span>
                     </div>
                   </div>
                 </div>

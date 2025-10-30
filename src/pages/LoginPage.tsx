@@ -5,9 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-// For toast, you can use a library like react-hot-toast
 import { toast } from "react-hot-toast";
 import { LogIn } from "lucide-react";
+
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock authentication
     if (email === "akhil@example.com" && password === "password") {
       toast.success("Login Successful! Welcome back, Akhil!");
       navigate("/dashboard");
@@ -26,12 +25,12 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
-      <div className="w-full" style={{ maxWidth: "300px", minWidth: "300px" }}>
-        <div className="w-full" style={{ aspectRatio: "5 / 8" }}>
-          <Card className="flex h-full flex-col">
+   <main className="flex min-h-screen w-full items-center justify-center bg-background">
+      <div className="w-full overflow-hidden rounded-lg " style={{ maxWidth: '300px', minWidth: '300px' }}>
+        <div className="flex h-full flex-col" style={{ aspectRatio: '5 / 8' }}>
+          <Card className="flex h-full flex-col border-0">
             <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-primary">Employee Productivity Hub</CardTitle>
+              <CardTitle className="text-2xl font-bold text-primary">ERP Agent</CardTitle>
               <CardDescription>Sign in to start your session</CardDescription>
             </CardHeader>
             <form onSubmit={handleLogin} className="flex flex-1 flex-col">

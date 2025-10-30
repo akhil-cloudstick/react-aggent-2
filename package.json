@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "main": "app.js",
+  "main": "electron/app.js",
   "scripts": {
     "start": "concurrently \"npm run start-react\" \"npm run start-electron\"",
     "dev": "vite",
@@ -55,7 +55,7 @@
     "@types/react-router-dom": "^5.3.3",
     "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.21",
-    "concurrently": "^8.0.1",
+    "concurrently": "^8.2.2",
     "cross-env": "^10.1.0",
     "electron": "^38.3.0",
     "electron-builder": "^26.0.12",
@@ -71,15 +71,14 @@
   },
   "build": {
     "appId": "com.myapp.agent",
-    "productName": "High Productivity",
+    "productName": "ERP Agent",
     "files": [
-      "app.js",
-      "preload.js",
+      "electron/**/*",
       "node_modules/**/*",
+      "dist/**/*",
       "icon.ico",
       "icon.png",
       "icon.icns",
-      "dist/**/*",
       "!**/node-global-key-listener/bin/MacKeyServer"
     ],
     "win": {
