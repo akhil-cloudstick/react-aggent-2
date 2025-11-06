@@ -1,7 +1,9 @@
 export const initialActivityCounts = {
+    id: Date.now(),
     keyActions: 0,
     mouseActions: 0,
-    lastActivityTime: Date.now()
+    startTime:null,
+    endTime:null
 };
 
 export const IPC_CHANNELS = {

@@ -29,19 +29,16 @@ const startGlobalActivityListeners = () => {
         if (e.state === "DOWN" && e.name) {
             if (e.name.startsWith('MOUSE ')) {
                 activityCounts.mouseActions++;
-                activityCounts.lastActivityTime = Date.now();
                 console.log(`[ACTIVITY LOG] MOUSE CLICK: ${e.name}. Count: ${activityCounts.mouseActions}`);
-            } 
+            }
             else {
                 activityCounts.keyActions++;
-                activityCounts.lastActivityTime = Date.now();
                 console.log(`[ACTIVITY LOG] KEY PRESS: ${e.name}. Count: ${activityCounts.keyActions}`);
             }
-        } 
+        }
         else if (e.state === "DOWN" && e.button) {
-             activityCounts.mouseActions++;
-             activityCounts.lastActivityTime = Date.now();
-             console.log(`[ACTIVITY LOG] MOUSE CLICK (e.button): Button ${e.button}. Count: ${activityCounts.mouseActions}`);
+            activityCounts.mouseActions++;
+            console.log(`[ACTIVITY LOG] MOUSE CLICK (e.button): Button ${e.button}. Count: ${activityCounts.mouseActions}`);
         }
     });
 };
@@ -53,7 +50,6 @@ const startMouseMovementPolling = () => {
         const distance = Math.abs(currentPos.x - lastMousePos.x) + Math.abs(currentPos.y - lastMousePos.y);
         if (distance > MIN_MOUSE_MOVEMENT_DISTANCE && isMonitoring) {
             activityCounts.mouseActions++;
-            activityCounts.lastActivityTime = Date.now();
             console.log(`[ACTIVITY LOG] Mouse moved! Count: ${activityCounts.mouseActions}`);
         }
         lastMousePos = currentPos;
@@ -81,6 +77,6 @@ export const deactivateMonitoring = () => {
 
 export const getAndResetActivityCounts = () => {
     const countsToSend = { ...activityCounts };
-    activityCounts = { ...initialActivityCounts }; 
+    activityCounts = { ...initialActivityCounts };
     return countsToSend;
 };

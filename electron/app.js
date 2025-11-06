@@ -7,9 +7,8 @@ import { registerScreenshotHandler } from './screenshotHandler.js';
 const __filename = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(__filename);
 
-app.setName('ERP Agent');
-app.setAppUserModelId('ERP Agent');
-
+app.setName('CloudHouse Agent');
+app.setAppUserModelId('CloudHouse Agent');
 
 app.whenReady().then(() => {
     createMainWindow(currentDir);

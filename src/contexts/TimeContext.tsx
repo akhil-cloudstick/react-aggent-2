@@ -26,7 +26,6 @@ export const TimeProvider = ({ children }: { children: ReactNode }) => {
   const [workLog, setWorkLog] = useState<{ [subtaskId: string]: number }>({});
 
   useEffect(() => {
-    // Load initial values from localStorage on mount
     const today = new Date().toDateString();
     const storedPunchInDate = localStorage.getItem('punchInDate');
     
@@ -37,7 +36,6 @@ export const TimeProvider = ({ children }: { children: ReactNode }) => {
       const storedWorkLog = JSON.parse(localStorage.getItem('workLog') || '{}');
       setWorkLog(storedWorkLog);
     } else {
-      // Clear storage for a new day
       localStorage.removeItem('punchInTime');
       localStorage.removeItem('punchInDate');
       localStorage.removeItem('totalWorkSeconds');

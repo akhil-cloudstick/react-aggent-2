@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -7,182 +7,267 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Label } from "../components/ui/label";
 import { Separator } from "../components/ui/separator";
 import { Textarea } from "../components/ui/textarea";
-import { projects, tasks, subtasks, users } from "../lib/data";
 import { useTime } from "../contexts/TimeContext";
-import { useMonitoring } from '../hooks/useMonitoring'; 
-
-const currentUser = users.find((u) => u.email === "akhil@example.com")!;
+import { useMonitoring } from "@/contexts/MonitoringContext";
+import { fetchProjectsWithAssignedSubtasks, submitDailyActivity, DailyActivityPayload, fetchDailyActivity } from "@/store/slices/taskSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { Loader2 } from "lucide-react"; 
 
 const formatSeconds = (seconds: number) => {
-  const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
-  const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
-  const s = Math.floor(seconds % 60).toString().padStart(2, "0");
-  return `${h}:${m}:${s}`;
+	const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+	const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+	const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+	return `${h}:${m}:${s}`;
 };
 
 export default function DashboardPage() {
-  const navigate = useNavigate();
-  const { workLog, startTimer } = useTime();
+	const navigate = useNavigate();
+	const dispatch = useAppDispatch()
+	const { workLog, startTimer } = useTime();
+	const username = localStorage.getItem('employee')
+	const [selectedProjectId, setSelectedProjectId] = useState<string>();
+	const [selectedTaskId, setSelectedTaskId] = useState<string>();
+	const [selectedSubtaskId, setSelectedSubtaskId] = useState<string>();
+	const [description, setDescription] = useState("");
+	const { projectsData, submissionLoading, submissionError, isPunchedIn, dailyPunchInTime, workDiary } = useAppSelector((state) => state.task)
+	useEffect(() => {
+		dispatch(fetchProjectsWithAssignedSubtasks())
+		dispatch(fetchDailyActivity()).unwrap()
+	}, [dispatch])
 
-  const [selectedProjectId, setSelectedProjectId] = useState<string>();
-  const [selectedTaskId, setSelectedTaskId] = useState<string>();
-  const [selectedSubtaskId, setSelectedSubtaskId] = useState<string>();
-  const [description, setDescription] = useState("");
+	const allSubtasks = useMemo(() => {
+		if (!projectsData || projectsData.length === 0) return [];
+		return projectsData.flatMap((project) =>
+			(project.tasks ?? []).flatMap((task) =>
+				(task.subtasks ?? []).map((subtask) => ({
+					...subtask,
+					taskId: task.id,
+					taskName: task.name,
+					projectId: project.id,
+					projectName: project.project_name,
+				}))
+			)
+		);
+	}, [projectsData]);
+	const workedOnSubtasks = useMemo(() => {
+		return allSubtasks
+			.map((subtask) => ({
+				...subtask,
+				totalTime: workLog[subtask.id] || 0,
+			}))
+			.filter((s) => s.totalTime > 0)
+			.sort((a, b) => b.totalTime - a.totalTime);
+	}, [allSubtasks, workLog]);
 
+	const filteredTasks = useMemo(() => {
+		if (!selectedProjectId) return [];
+		const project = projectsData?.find((p) => p.id === Number(selectedProjectId));
+		return project ? project.tasks : [];
+	}, [projectsData, selectedProjectId]);
 
+	const filteredSubtasks = useMemo(() => {
+		if (!selectedTaskId) return [];
+		const project = projectsData?.find((p) =>
+			p.tasks.some((t) => t.id === Number(selectedTaskId))
+		);
+		const task = project?.tasks.find((t) => t.id === Number(selectedTaskId));
+		return task ? task.subtasks.filter((st) => st.assigned) : [];
+	}, [projectsData, selectedTaskId]);
 
+	const selectedSubtask = useMemo(() => {
+		if (!selectedSubtaskId) return null;
+		return allSubtasks.find((st) => st.id === Number(selectedSubtaskId));
+	}, [allSubtasks, selectedSubtaskId]);
 
-  const workedOnSubtasks = useMemo(() => {
-    return Object.keys(workLog)
-      .map((subtaskId) => {
-        const subtask = subtasks.find((st) => st.id === subtaskId);
-        if (!subtask) return null;
-        const task = tasks.find((t) => t.id === subtask.taskId);
-        const project = projects.find((p) => p.id === task?.projectId);
-        return {
-          ...subtask,
-          taskName: task?.name,
-          projectName: project?.name,
-          totalTime: workLog[subtaskId],
-        };
-      })
-      .filter((s): s is NonNullable<typeof s> => s !== null && s.totalTime > 0)
-      .sort((a, b) => b.totalTime - a.totalTime);
-  }, [workLog]);
+	const { startMonitoring } = useMonitoring();
+	const handleStart = async () => {
+		if (!selectedSubtaskId || !selectedSubtask) return; 
+		const now = new Date();
+		const dateFormatted = now.toISOString();
+		const timeFormatted = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+		const activityData = {
+			sub_task_id: Number(selectedSubtaskId),
+			start_time: timeFormatted,
+			description: description || selectedSubtask.description || "",
+		};
+		let payload: DailyActivityPayload;
+		payload = {
+			punch_in: timeFormatted,
+			date: dateFormatted,
+			task_activities: [activityData],
+		};
+		const formData = new FormData()
+		formData.append("data", JSON.stringify(payload))
+		let taskActivityId: string | undefined; 
+		let workDiaryID: string | undefined; 
 
-  const filteredTasks = useMemo(() => {
-    if (!selectedProjectId) return [];
-    return tasks.filter((task) => task.projectId === selectedProjectId);
-  }, [selectedProjectId]);
+		try {
+			const response = await dispatch(submitDailyActivity(formData)).unwrap();
+			workDiaryID = response?.response?.data?.task_activities[0]?.work_diary_id
+			taskActivityId = response?.response?.data?.task_activities[0]?.id
+		} catch (err) {
+			console.error("Failed to punch in and start task:", err);
+			return;
+		}
+		if (workDiaryID && taskActivityId) {
+			startTimer(selectedSubtaskId);
+			startMonitoring(selectedSubtaskId, Number(workDiaryID),Number(taskActivityId));
+			navigate(`/work-session/${selectedSubtaskId}/${workDiaryID}/${taskActivityId}`);
+		} else {
+			console.warn("No taskActivityId found; skipping monitoring");
+		}
 
-  const filteredSubtasks = useMemo(() => {
-    if (!selectedTaskId) return [];
-    return subtasks.filter(
-      (subtask) => subtask.taskId === selectedTaskId && subtask.assignedToUserId === currentUser.id
-    );
-  }, [selectedTaskId]);
+	};
 
-  const selectedSubtask = useMemo(() => {
-    if (!selectedSubtaskId) return null;
-    return subtasks.find((subtask) => subtask.id === selectedSubtaskId);
-  }, [selectedSubtaskId]);
+	const getAssignedSubtaskCountForProject = (projectId: string) => {
+		const numericId = Number(projectId);
+		const project = projectsData?.find((p) => p.id === numericId);
+		if (!project) return 0;
+		return (project.tasks ?? []).reduce(
+			(count, t) => count + (t.subtasks ?? []).filter((st) => st.assigned).length,
+			0
+		);
+	};
 
-  const { startMonitoring } = useMonitoring(selectedSubtaskId);
+	const getAssignedSubtaskCountForTask = (taskId: number) => {
+		return allSubtasks.filter(
+			(st) => st.taskId === taskId && st.assigned
+		).length;
+	};
 
-  const handleStart = () => {
-    if (selectedSubtaskId) {
-      startTimer(selectedSubtaskId);
-      startMonitoring(selectedSubtaskId);
-      navigate(`/work-session/${selectedSubtaskId}`);
-    }
-  };
+	return (
+		<div className="space-y-6 flex flex-col h-full">
+			<div className="space-y-2">
+				<h2 className="text-2xl font-bold">Hi, {username}</h2>
+			</div>
+			<div className="space-y-4">
+				<div className="space-y-2">
+					<Label htmlFor="project-select">Projects</Label>
+					<Select
+						value={selectedProjectId?.toString()}
+						onValueChange={(value) => {
+							setSelectedProjectId(value);
+							setSelectedTaskId(undefined);
+							setSelectedSubtaskId(undefined);
+						}}
+					>
+						<SelectTrigger id="project-select">
+							<SelectValue placeholder="Select a project" />
+						</SelectTrigger>
+						<SelectContent>
+							{projectsData?.map((project) => (
+								<SelectItem
+									key={project.id}
+									value={project.id.toString()}
+								>
+									{project.project_name} ({getAssignedSubtaskCountForProject(project.id.toString())} assigned)
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+				<div className="space-y-2">
+					<Label htmlFor="task-select">Tasks</Label>
+					<Select
+						value={selectedTaskId?.toString()}
+						onValueChange={(value) => {
+							setSelectedTaskId(value);
+							setSelectedSubtaskId(undefined);
+						}}
+						disabled={!selectedProjectId}
+					>
+						<SelectTrigger id="task-select">
+							<SelectValue placeholder="Select a task" />
+						</SelectTrigger>
+						<SelectContent>
+							{(filteredTasks ?? []).map((task) => (
+								<SelectItem key={task.id} value={task.id.toString()}>
+									{task.name} ({getAssignedSubtaskCountForTask(task.id)} assigned)
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+				<div className="space-y-2">
+					<Label htmlFor="subtask-select">Subtasks</Label>
+					<Select
+						value={selectedSubtaskId?.toString()}
+						onValueChange={(value) => setSelectedSubtaskId(value)}
+						disabled={!selectedTaskId}
+					>
+						<SelectTrigger id="subtask-select">
+							<SelectValue placeholder="Select a subtask" />
+						</SelectTrigger>
+						<SelectContent>
+							{(filteredSubtasks ?? []).map((subtask) => (
+								<SelectItem key={subtask.id} value={subtask.id.toString()}>
+									{subtask.name}
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+			</div>
+			<div className="space-y-2">
+				<Label htmlFor="description">Work Note Entry</Label>
+				<Textarea
+					id="description"
+					placeholder={
+						selectedSubtask
+							? selectedSubtask.description
+							: "Add a description of your work..."
+					}
+					value={description}
+					onChange={(e) => setDescription(e.target.value)}
+					className="h-24"
+					disabled={!selectedSubtask}
+				/>
+			</div>
 
-  const getAssignedSubtaskCountForProject = (projectId: string) => {
-    const projectTaskIds = tasks.filter(t => t.projectId === projectId).map(t => t.id);
-    return subtasks.filter(st => projectTaskIds.includes(st.taskId) && st.assignedToUserId === currentUser.id).length;
-  };
-  const getAssignedSubtaskCountForTask = (taskId: string) => {
-    return subtasks.filter(st => st.taskId === taskId && st.assignedToUserId === currentUser.id).length;
-  };
+			<Button
+				className="w-full bg-blue-600 hover:bg-blue-800 text-accent-foreground"
+				onClick={handleStart}
+				disabled={!selectedSubtaskId || submissionLoading} 
+			>
+				{submissionLoading && !isPunchedIn ? ( 
+					<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Punching In...</>
+				) : (
+					'Start Work'
+				)}
+			</Button>
+			<Separator />
+			<div className="space-y-2">
+				<h5 className="text-xl font-bold">Work History</h5>
+				{workDiary && Array.isArray(workDiary.task_activities) && workDiary.task_activities.length > 0 ? (
+					<div className="flex flex-wrap gap-2">
+						{workDiary.task_activities.map((taskActivity) => (
+							<Badge
+								key={taskActivity.id}
+								variant="secondary"
+								className="cursor-pointer px-2 py-0.5 text-xs !bg-blue-600 hover:!bg-blue-800/70"
+								onClick={() => {
+									startTimer(taskActivity.id.toString());
+									startMonitoring(taskActivity.sub_task_id.toString(), taskActivity.work_diary_id,taskActivity.id);
+									navigate(`/work-session/${taskActivity.sub_task_id}/${taskActivity.work_diary_id}/${taskActivity.id}`);
+								}}
+							>
+								{taskActivity.subtask_name} - {taskActivity.total_time_spent}
+							</Badge>
+						))}
+					</div>
 
-  return (
-    <div className="space-y-6 flex flex-col h-full ">
-      <div className="space-y-6 flex flex-col h-full">
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Hi, {currentUser.name}</h2>
-        </div>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="project-select">Projects</Label>
-            <Select value={selectedProjectId} onValueChange={(value) => { setSelectedProjectId(value); setSelectedTaskId(undefined); setSelectedSubtaskId(undefined); }}>
-              <SelectTrigger id="project-select"><SelectValue placeholder="Select a project" /></SelectTrigger>
-              <SelectContent>
-                {projects.map(project => (
-                  <SelectItem key={project.id} value={project.id}>
-                    {project.name} ({getAssignedSubtaskCountForProject(project.id)} assigned)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="task-select">Tasks</Label>
-            <Select value={selectedTaskId} onValueChange={(value) => { setSelectedTaskId(value); setSelectedSubtaskId(undefined); }} disabled={!selectedProjectId}>
-              <SelectTrigger id="task-select"><SelectValue placeholder="Select a task" /></SelectTrigger>
-              <SelectContent>
-                {filteredTasks.map(task => (
-                  <SelectItem key={task.id} value={task.id}>
-                    {task.name} ({getAssignedSubtaskCountForTask(task.id)} assigned)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="subtask-select">Subtasks</Label>
-            <Select value={selectedSubtaskId} onValueChange={setSelectedSubtaskId} disabled={!selectedTaskId}>
-              <SelectTrigger id="subtask-select"><SelectValue placeholder="Select a subtask" /></SelectTrigger>
-              <SelectContent>
-                {filteredSubtasks.map(subtask => (
-                  <SelectItem key={subtask.id} value={subtask.id}>
-                    {subtask.name}
-                  </SelectItem>
-                )
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="description">Work Note Entry</Label>
-          <Textarea
-            id="description"
-            placeholder={selectedSubtask ? selectedSubtask.description : "Add a description of your work..."}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="h-24"
-            disabled={!selectedSubtask}
-          />
-        </div>
+				) : (
+					<div className="flex-1 flex items-center justify-center text-center">
+						<Card className="p-6 border-dashed">
+							<CardHeader>
+								<CardTitle>No Activity Yet</CardTitle>
+								<CardDescription>You haven't tracked any work yet. Select a subtask to get started.</CardDescription>
+							</CardHeader>
+						</Card>
+					</div>
+				)}
+			</div>
 
-        <Button className="w-full bg-blue-600 hover:bg-blue-800 text-accent-foreground" onClick={handleStart} disabled={!selectedSubtaskId}>
-          Start Work
-        </Button>
-        <Separator />
-        <div className="space-y-2">
-          <h5 className="text-xl font-bold">Work History</h5>
-          {workedOnSubtasks.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {workedOnSubtasks.map((subtask) => (
-                <Badge
-                  key={subtask.id}
-                  variant="secondary"
-                  className="cursor-pointer px-2 py-0.5 text-xs !bg-blue-600 hover:!bg-blue-800/70"
-                  title={`${subtask.name} - ${formatSeconds(subtask.totalTime)}`}
-                  onClick={() => {
-                    startTimer(subtask.id); // 1. Start timer for clicked subtask
-                    startMonitoring(subtask.id); // 2. 🚀 This line correctly restarts monitoring!
-                    navigate(`/work-session/${subtask.id}`); // 3. Navigate to its page
-                  }}
-                >
-                  {subtask.name} - {formatSeconds(subtask.totalTime)}
-                </Badge>
-              ))}
-            </div>
-
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-center">
-              <Card className="p-6 border-dashed">
-                <CardHeader>
-                  <CardTitle>No Activity Yet</CardTitle>
-                  <CardDescription>You haven't tracked any work yet. Select a subtask to get started.</CardDescription>
-                </CardHeader>
-              </Card>
-            </div>
-          )}
-        </div>
-
-      </div>
-    </div>
-  );
+		</div>
+	);
 }

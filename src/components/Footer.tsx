@@ -1,19 +1,40 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Button } from "../components/ui/button"; // adjust path
+import { Button } from "../components/ui/button"; 
 import { LogOut } from "lucide-react";
-import { useToast } from "../hooks/use-toast"; // adjust path
+import { useToast } from "../hooks/use-toast"; 
+import { useMonitoring } from "@/contexts/MonitoringContext";
+import { useTime } from "@/contexts/TimeContext";
+import { useDispatch } from "react-redux";
+import { punchinClear } from "@/store/slices/taskSlice";
+import { logout } from "@/store/slices/loginSlice";
+
 
 const Footer: React.FC = () => {
+  const subtaskId = localStorage.getItem("subtaskId")
+  const taskActivityId = Number(localStorage.getItem("taskActivityId"))
+  const workDiaryID = Number(localStorage.getItem("workDiaryID"))
+  const { isTimerRunning, stopTimer } = useTime();
+  const {  stopMonitoring } = useMonitoring();
+
   const navigate = useNavigate();
   const { toast } = useToast();
+  const dispatch = useDispatch()
 
   const handleLogout = () => {
+    dispatch(logout())
+    dispatch(punchinClear())
+    if (isTimerRunning) {
+      stopTimer();
+      if (subtaskId && taskActivityId && workDiaryID) {
+        stopMonitoring(subtaskId, workDiaryID, taskActivityId);
+      }
+    }
     toast({
       title: "Logged Out",
       description: "You have been successfully logged out.",
     });
-    navigate("/"); // redirect to home/login
+    navigate("/");
   };
 
   return (

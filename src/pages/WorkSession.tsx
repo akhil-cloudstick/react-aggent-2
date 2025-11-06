@@ -4,6 +4,9 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Switch } from "../components/ui/switch";
 import { Label } from "../components/ui/label";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,12 +18,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
-import { screenshots as mockScreenshots, subtasks, users } from "../lib/data";
-import type { Screenshot } from "../lib/definitions";
 import { useTime } from "../contexts/TimeContext";
-import { X, Clock, Keyboard, MousePointerClick } from "lucide-react";
+import { X, Clock, Keyboard, MousePointerClick, LogOut } from "lucide-react";
 import { PlaceHolderImages } from '../lib/placeholder-images';
-import { useMonitoring } from '../hooks/useMonitoring'; // 🚀 NEW
+import { useMonitoring } from "@/contexts/MonitoringContext";
 
 const formatSeconds = (seconds: number) => {
   const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
@@ -30,36 +31,36 @@ const formatSeconds = (seconds: number) => {
 };
 
 export default function WorkSessionPage() {
-  const { subtaskId } = useParams<{ subtaskId: string }>();
+  const { subtaskId, workDiaryId, taskActivityId } = useParams<{ subtaskId: string, workDiaryId: string, taskActivityId: string }>();
   const navigate = useNavigate();
   const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer, workLog } = useTime();
-  const [screenshots, setScreenshots] = useState<Screenshot[]>(mockScreenshots);
-  const { startMonitoring, stopMonitoring, latestLogEntry } = useMonitoring(subtaskId); // Pass subtaskId for context
+  const { startMonitoring, stopMonitoring, latestLogEntry } = useMonitoring();
 
   useEffect(() => {
-    if (!isTimerRunning && subtaskId) {
-      startTimer(subtaskId);
-      startMonitoring(subtaskId);
+    if (subtaskId && taskActivityId && workDiaryId) {
+      localStorage.setItem("subtaskId", subtaskId.toString())
+      localStorage.setItem("taskActivityId", taskActivityId)
+      localStorage.setItem("workDiaryId", workDiaryId)
     }
-  }, [subtaskId]);
+  }, [subtaskId, taskActivityId])
   const handleToggle = (isRunning: boolean) => {
     setTimerRunning(isRunning);
     if (!isRunning) {
       stopTimer();
-      console.log("id:", subtaskId)
-      if (subtaskId) {
-        stopMonitoring(subtaskId);
+      if (subtaskId && taskActivityId && workDiaryId) {
+        stopMonitoring(subtaskId,Number(workDiaryId), Number(taskActivityId));
       }
       navigate("/dashboard");
     }
   };
+  const projects = useAppSelector((state) => state.task.projectsData);
+  const subtask = projects
+    .flatMap((p) => (p.tasks ?? []))
+    .flatMap((t) => (t.subtasks ?? []))
+    .find((st) => st.id === Number(subtaskId));
 
-  const subtask = subtasks.find((st) => st.id === subtaskId);
-  const assignedUser = users.find((u) => u.id === subtask?.assignedToUserId);
-  if (!subtask || !assignedUser) return <div>Subtask not found.</div>;
+  if (!subtask) return <div>Subtask not found.</div>;
   const totalSubtaskTime = 0 + sessionWorkSeconds;
-  const currentScreenshot = screenshots[0] || null;
-  const handleDelete = (id: string) => setScreenshots(screenshots.filter((ss) => ss.id !== id));
 
   return (
     <div className="flex flex-col h-full space-y-4">
@@ -75,7 +76,7 @@ export default function WorkSessionPage() {
 
       <div className="flex-1 overflow-y-auto space-y-4 pr-2 -mr-2">
         {latestLogEntry && (() => {
-          const placeholder = PlaceHolderImages.find((p) => p.id === latestLogEntry.subtaskId);
+          const placeholder = PlaceHolderImages.find((p) => p.id === latestLogEntry.subtaskId.toString());
           return (
             <Card key={latestLogEntry.subtaskId} className="relative group overflow-hidden">
               <CardContent className="p-0">
@@ -83,7 +84,7 @@ export default function WorkSessionPage() {
                   {latestLogEntry.screenshot && (
                     <img
                       src={`data:image/jpeg;base64,${latestLogEntry.screenshot}`}
-                      alt={`Screenshot for subtask ${latestLogEntry.subtaskId} taken at ${new Date(latestLogEntry.timestamp).toLocaleTimeString()}`} className="w-full h-auto object-cover"
+                      alt={`Screenshot for subtask ${latestLogEntry.subtaskId} taken at ${new Date(latestLogEntry.endTime).toLocaleTimeString()}`} className="w-full h-auto object-cover"
                     />
                   )}
 
@@ -94,7 +95,7 @@ export default function WorkSessionPage() {
                     <div className="flex items-center gap-1">
                       <Clock size={12} />
                       <span>
-                        {new Date(latestLogEntry.timestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                        {latestLogEntry.endTime}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -127,7 +128,7 @@ export default function WorkSessionPage() {
                     </AlertDialogDescription>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDelete(currentScreenshot.id)}>Delete</AlertDialogAction>
+                      {/* <AlertDialogAction onClick={() => handleDelete(currentScreenshot.id)}>Delete</AlertDialogAction> */}
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
@@ -142,8 +143,10 @@ export default function WorkSessionPage() {
           <p className="text-xs text-muted-foreground">Subtask Time</p>
           <p className="text-lg font-semibold tabular-nums">{formatSeconds(totalSubtaskTime)}</p>
         </div>
-        <Button variant="outline" onClick={() => navigate("/diary")}>Work Diary</Button>
+        <Button variant="outline">Work Diary</Button>
       </div>
+
     </div>
+
   );
 }

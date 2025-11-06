@@ -3,6 +3,7 @@ import { getAndResetActivityCounts, activateMonitoring, deactivateMonitoring } f
 import { IPC_CHANNELS } from './constants.js';
 
 let monitoringInterval = null;
+let lastEndTime = null;
 
 const captureScreen = async () => {
     const sources = await desktopCapturer.getSources({
@@ -31,43 +32,65 @@ const showScreenshotNotification = () => {
 };
 
 
-export function setupMonitoringHandlers() {
+function formatTime(date) {
+    return date.toLocaleTimeString('en-GB', { hour12: false });
+}
 
-    ipcMain.on(IPC_CHANNELS.START_MONITORING, (event, intervalMs, subtaskId) => {
+
+export function setupMonitoringHandlers() {
+    ipcMain.on(IPC_CHANNELS.START_MONITORING, (event, intervalMs, subtaskId, workDiaryID, taskActivityId) => {
         if (monitoringInterval) clearInterval(monitoringInterval);
         activateMonitoring();
         console.log(`Monitoring started for Subtask ${subtaskId} every ${intervalMs / 1000} seconds.`);
+        const now = new Date();
+        lastEndTime = now;
         captureScreen().then(base64Image => {
             const counts = getAndResetActivityCounts();
             const payload = {
                 ...counts,
                 screenshot: base64Image,
-                timestamp: new Date().toISOString(),
+                startTime: formatTime(now),
+                endTime: formatTime(now),
                 subtaskId: subtaskId,
+                taskActivityId: taskActivityId,
+                workDiaryID: workDiaryID
             };
             event.sender.send(IPC_CHANNELS.PERIODIC_DATA, payload);
         });
         monitoringInterval = setInterval(async () => {
+            const currentTime = new Date();
+            const startTime = lastEndTime;
+            const endTime = currentTime;
+            lastEndTime = endTime; // update tracker
             const base64Image = await captureScreen();
             const counts = getAndResetActivityCounts();
             const payload = {
                 ...counts,
                 screenshot: base64Image,
-                timestamp: new Date().toISOString(),
+                startTime: formatTime(startTime),
+                endTime: formatTime(endTime),
                 subtaskId: subtaskId,
+                taskActivityId: taskActivityId,
+                workDiaryID: workDiaryID
             };
             event.sender.send(IPC_CHANNELS.PERIODIC_DATA, payload);
         }, intervalMs);
     });
 
-    ipcMain.on(IPC_CHANNELS.STOP_MONITORING, (event, subtaskId) => {
+    ipcMain.on(IPC_CHANNELS.STOP_MONITORING, (event, subtaskId, workDiaryID, taskActivityId) => {
+        const stopTime = new Date();
+        const startTime = lastEndTime;
         captureScreen().then(base64Image => {
             const counts = getAndResetActivityCounts();
             const payload = {
                 ...counts,
                 screenshot: base64Image,
-                timestamp: new Date().toISOString(),
+                startTime: formatTime(startTime),
+                endTime: formatTime(stopTime),
                 subtaskId: subtaskId,
+                taskActivityId: taskActivityId,
+                workDiaryID: workDiaryID
+
             };
             event.sender.send(IPC_CHANNELS.PERIODIC_DATA, payload);
         });
@@ -76,6 +99,7 @@ export function setupMonitoringHandlers() {
             clearInterval(monitoringInterval);
             monitoringInterval = null;
         }
+        lastEndTime = null;
         console.log('Monitoring stopped.');
     });
 }
