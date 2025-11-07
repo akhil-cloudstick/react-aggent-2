@@ -40,7 +40,6 @@ export function createMainWindow(currentDir) {
         console.log(`Loading production file from: ${htmlPath}`);
         win.loadFile(htmlPath);
         win.webContents.openDevTools();
-
     }
 }
 
