@@ -3,7 +3,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createMainWindow } from './mainWindow.js';
 import { setupMonitoringHandlers, cleanupMonitoring } from './monitoring.js';
-import { registerScreenshotHandler } from './screenshotHandler.js';
 const __filename = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(__filename);
 
@@ -13,7 +12,6 @@ app.setAppUserModelId('CloudHouse Agent');
 app.whenReady().then(() => {
     createMainWindow(currentDir);
     setupMonitoringHandlers();
-    registerScreenshotHandler();
     app.applicationMenu = null; 
 });
 

@@ -2,7 +2,7 @@ import { app, BrowserWindow, screen } from 'electron';
 import path from 'path';
 import { WINDOW_CONFIG } from './constants.js';
 
-let win = null; 
+let win = null;
 export function createMainWindow(currentDir) {
     if (win) return;
     const primaryDisplay = screen.getPrimaryDisplay();
@@ -39,6 +39,8 @@ export function createMainWindow(currentDir) {
         const htmlPath = path.join(appPath, 'dist', 'index.html');
         console.log(`Loading production file from: ${htmlPath}`);
         win.loadFile(htmlPath);
+        win.webContents.openDevTools();
+
     }
 }
 
