@@ -5,25 +5,24 @@ import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Label } from "../components/ui/label";
-import { Separator } from "../components/ui/separator";
 import { Textarea } from "../components/ui/textarea";
 import { useTime } from "../contexts/TimeContext";
 import { useMonitoring } from "@/contexts/MonitoringContext";
 import { fetchProjectsWithAssignedSubtasks, submitDailyActivity, DailyActivityPayload, fetchDailyActivity } from "@/store/slices/taskSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { Loader2 } from "lucide-react"; 
+import { Loader2 } from "lucide-react";
 
-const formatSeconds = (seconds: number) => {
-	const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
-	const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
-	const s = Math.floor(seconds % 60).toString().padStart(2, "0");
-	return `${h}:${m}:${s}`;
-};
+// const formatSeconds = (seconds: number) => {
+// 	const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
+// 	const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
+// 	const s = Math.floor(seconds % 60).toString().padStart(2, "0");
+// 	return `${h}:${m}:${s}`;
+// };
 
 export default function DashboardPage() {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch()
-	const { workLog, startTimer } = useTime();
+	const { startTimer } = useTime();
 	const username = localStorage.getItem('employee')
 	const [selectedProjectId, setSelectedProjectId] = useState<string>();
 	const [selectedTaskId, setSelectedTaskId] = useState<string>();
@@ -32,7 +31,9 @@ export default function DashboardPage() {
 	const { projectsData, submissionLoading, submissionError, isPunchedIn, dailyPunchInTime, workDiary } = useAppSelector((state) => state.task)
 	useEffect(() => {
 		dispatch(fetchProjectsWithAssignedSubtasks())
-		dispatch(fetchDailyActivity()).unwrap()
+		setTimeout(() => {
+			dispatch(fetchDailyActivity()).unwrap()
+		}, 500);
 	}, [dispatch])
 
 	const allSubtasks = useMemo(() => {
@@ -49,15 +50,6 @@ export default function DashboardPage() {
 			)
 		);
 	}, [projectsData]);
-	const workedOnSubtasks = useMemo(() => {
-		return allSubtasks
-			.map((subtask) => ({
-				...subtask,
-				totalTime: workLog[subtask.id] || 0,
-			}))
-			.filter((s) => s.totalTime > 0)
-			.sort((a, b) => b.totalTime - a.totalTime);
-	}, [allSubtasks, workLog]);
 
 	const filteredTasks = useMemo(() => {
 		if (!selectedProjectId) return [];
@@ -81,7 +73,7 @@ export default function DashboardPage() {
 
 	const { startMonitoring } = useMonitoring();
 	const handleStart = async () => {
-		if (!selectedSubtaskId || !selectedSubtask) return; 
+		if (!selectedSubtaskId || !selectedSubtask) return;
 		const now = new Date();
 		const dateFormatted = now.toISOString();
 		const timeFormatted = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
@@ -98,8 +90,8 @@ export default function DashboardPage() {
 		};
 		const formData = new FormData()
 		formData.append("data", JSON.stringify(payload))
-		let taskActivityId: string | undefined; 
-		let workDiaryID: string | undefined; 
+		let taskActivityId: string | undefined;
+		let workDiaryID: string | undefined;
 
 		try {
 			const response = await dispatch(submitDailyActivity(formData)).unwrap();
@@ -109,10 +101,11 @@ export default function DashboardPage() {
 			console.error("Failed to punch in and start task:", err);
 			return;
 		}
-		if (workDiaryID && taskActivityId) {
+		const intervel = localStorage.getItem('activity_period')
+		if (workDiaryID && taskActivityId && intervel) {
 			startTimer(selectedSubtaskId);
-			startMonitoring(selectedSubtaskId, Number(workDiaryID),Number(taskActivityId));
 			navigate(`/work-session/${selectedSubtaskId}/${workDiaryID}/${taskActivityId}`);
+			startMonitoring(Number(intervel), selectedSubtaskId, Number(workDiaryID), Number(taskActivityId));
 		} else {
 			console.warn("No taskActivityId found; skipping monitoring");
 		}
@@ -227,17 +220,17 @@ export default function DashboardPage() {
 			<Button
 				className="w-full bg-blue-600 hover:bg-blue-800 text-accent-foreground"
 				onClick={handleStart}
-				disabled={!selectedSubtaskId || submissionLoading} 
+				disabled={!selectedSubtaskId || submissionLoading}
 			>
-				{submissionLoading && !isPunchedIn ? ( 
-					<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Punching In...</>
+				{submissionLoading && !isPunchedIn ? (
+					<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Work Starting...</>
 				) : (
 					'Start Work'
 				)}
 			</Button>
-			<Separator />
+			<hr />
 			<div className="space-y-2">
-				<h5 className="text-xl font-bold">Work History</h5>
+				<h5 className="text-xl font-bold">Daily Work History</h5>
 				{workDiary && Array.isArray(workDiary.task_activities) && workDiary.task_activities.length > 0 ? (
 					<div className="flex flex-wrap gap-2">
 						{workDiary.task_activities.map((taskActivity) => (
@@ -246,9 +239,11 @@ export default function DashboardPage() {
 								variant="secondary"
 								className="cursor-pointer px-2 py-0.5 text-xs !bg-blue-600 hover:!bg-blue-800/70"
 								onClick={() => {
-									startTimer(taskActivity.id.toString());
-									startMonitoring(taskActivity.sub_task_id.toString(), taskActivity.work_diary_id,taskActivity.id);
-									navigate(`/work-session/${taskActivity.sub_task_id}/${taskActivity.work_diary_id}/${taskActivity.id}`);
+									if (localStorage.getItem('activity_period') && taskActivity.sub_task_id && taskActivity.work_diary_id) {
+										startTimer(taskActivity.id.toString());
+										startMonitoring(Number(localStorage.getItem('activity_period')), taskActivity.sub_task_id.toString(), taskActivity.work_diary_id, taskActivity.id);
+										navigate(`/work-session/${taskActivity.sub_task_id}/${taskActivity.work_diary_id}/${taskActivity.id}`);
+									}
 								}}
 							>
 								{taskActivity.subtask_name} - {taskActivity.total_time_spent}

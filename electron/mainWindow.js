@@ -37,7 +37,6 @@ export function createMainWindow(currentDir) {
     } else {
         const appPath = app.getAppPath();
         const htmlPath = path.join(appPath, 'dist', 'index.html');
-        console.log(`Loading production file from: ${htmlPath}`);
         win.loadFile(htmlPath);
         win.webContents.openDevTools();
     }

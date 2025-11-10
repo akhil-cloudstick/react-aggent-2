@@ -1,26 +1,12 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Switch } from "../components/ui/switch";
 import { Label } from "../components/ui/label";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
-
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../components/ui/alert-dialog";
+import { useAppSelector } from "@/store/hooks";
 import { useTime } from "../contexts/TimeContext";
 import { X, Clock, Keyboard, MousePointerClick, LogOut } from "lucide-react";
-import { PlaceHolderImages } from '../lib/placeholder-images';
 import { useMonitoring } from "@/contexts/MonitoringContext";
 
 const formatSeconds = (seconds: number) => {
@@ -33,8 +19,8 @@ const formatSeconds = (seconds: number) => {
 export default function WorkSessionPage() {
   const { subtaskId, workDiaryId, taskActivityId } = useParams<{ subtaskId: string, workDiaryId: string, taskActivityId: string }>();
   const navigate = useNavigate();
-  const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer, workLog } = useTime();
-  const { startMonitoring, stopMonitoring, latestLogEntry } = useMonitoring();
+  const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer } = useTime();
+  const {  stopMonitoring, latestLogEntry } = useMonitoring();
 
   useEffect(() => {
     if (subtaskId && taskActivityId && workDiaryId) {
@@ -48,7 +34,7 @@ export default function WorkSessionPage() {
     if (!isRunning) {
       stopTimer();
       if (subtaskId && taskActivityId && workDiaryId) {
-        stopMonitoring(subtaskId,Number(workDiaryId), Number(taskActivityId));
+        stopMonitoring(subtaskId, Number(workDiaryId), Number(taskActivityId));
       }
       navigate("/dashboard");
     }
@@ -74,23 +60,20 @@ export default function WorkSessionPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-4 pr-2 -mr-2">
+      <div className="mt-5 mb-15">
         {latestLogEntry && (() => {
-          const placeholder = PlaceHolderImages.find((p) => p.id === latestLogEntry.subtaskId.toString());
           return (
-            <Card key={latestLogEntry.subtaskId} className="relative group overflow-hidden">
-              <CardContent className="p-0">
+            <Card key={latestLogEntry.subtaskId} className="relative group overflow-hidden rounded-md border-0 ">
+              <CardContent className="p-0  ">
                 <div>
                   {latestLogEntry.screenshot && (
                     <img
                       src={`data:image/jpeg;base64,${latestLogEntry.screenshot}`}
-                      alt={`Screenshot for subtask ${latestLogEntry.subtaskId} taken at ${new Date(latestLogEntry.endTime).toLocaleTimeString()}`} className="w-full h-auto object-cover"
                     />
                   )}
-
                 </div>
-
-                <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm p-2 text-white">
+                <div className="absolute bottom-0 left-0 right-0 bg-black/50 backdrop-blur-sm p-2 text-white 
+                    rounded-b-md">
                   <div className="flex justify-between items-center text-xs">
                     <div className="flex items-center gap-1">
                       <Clock size={12} />
@@ -108,36 +91,11 @@ export default function WorkSessionPage() {
                     </div>
                   </div>
                 </div>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-2 right-2 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X size={16} />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    </AlertDialogHeader>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete the screenshot.
-                    </AlertDialogDescription>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      {/* <AlertDialogAction onClick={() => handleDelete(currentScreenshot.id)}>Delete</AlertDialogAction> */}
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
               </CardContent>
             </Card>
           );
         })()}
       </div>
-
       <div className="flex-shrink-0 flex items-center justify-between pt-2 border-t">
         <div className="text-left">
           <p className="text-xs text-muted-foreground">Subtask Time</p>

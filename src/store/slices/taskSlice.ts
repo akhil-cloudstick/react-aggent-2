@@ -67,7 +67,7 @@ export interface WorkDiary {
   date: string;
   avrg_keyboard_action: number;
   avrg_mouse_action: number;
-  activity_period: string;
+  activity_period: number;
   task_activities: TaskActivity[];
 }
 
@@ -114,7 +114,16 @@ export const fetchDailyActivity = createAsyncThunk(
       const assigneeId = localStorage.getItem("userId");
       const url = `/api/v1/employee/${assigneeId}/agent?date=${formattedDate}`;
       const response = await api.getEvents(url);
-      return response.data;
+      const data = response.data;
+      if (data.data.total_work_time) {
+        const [hours, minutes, seconds] = data.data.total_work_time.split(":").map(Number);
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        localStorage.setItem("totalWorkSeconds", totalSeconds);
+      }
+      if (data.data.activity_period) {
+        localStorage.setItem("activity_period", data.data.activity_period)
+      }
+      return data;
     } catch (error: any) {
       if (axios.isAxiosError(error)) {
         return rejectWithValue(error.response?.data || "Failed to fetch daily activity");
@@ -123,7 +132,6 @@ export const fetchDailyActivity = createAsyncThunk(
     }
   }
 );
-
 
 export const submitDailyActivity = createAsyncThunk(
   "projects/submitDailyActivity",
@@ -196,7 +204,6 @@ const projectSlice = createSlice({
         state.submissionError = null;
         state.dailyPunchInTime = action.payload.response.data.punch_in;
         state.TaskActivity = action.payload.response.data.task_activities
-        console.log("Daily activity submitted successfully:", action.payload);
       })
       .addCase(submitDailyActivity.rejected, (state, action) => {
         state.submissionLoading = false;

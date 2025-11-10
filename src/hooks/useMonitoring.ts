@@ -16,8 +16,7 @@ interface ActivityData {
     taskActivityId: number;
 }
 
-const MONITORING_INTERVAL_MS = 250 * 60 * 1;
-type StartMonitoringFunc = (id: string, workDiaryID: number, taskActivityId: number,) => void;
+type StartMonitoringFunc = (intervel: number, id: string, workDiaryID: number, taskActivityId: number) => void;
 type StopMonitoringFunc = (id: string, workDiaryID: number, taskActivityId: number) => void;
 
 export const useMonitoring = (): {
@@ -25,12 +24,11 @@ export const useMonitoring = (): {
     stopMonitoring: StopMonitoringFunc,
     latestLogEntry: ActivityData | null;
 } => {
-    const dispatch = useAppDispatch(); 
+    const dispatch = useAppDispatch();
     const [latestLogEntry, setLogEntries] = useState<ActivityData | null>(null);
-    const startMonitoring: StartMonitoringFunc = useCallback((subId: string, workDiaryID: number, taskActivityId: number,) => {
-
+    const startMonitoring: StartMonitoringFunc = useCallback((intervel: number, subId: string, workDiaryID: number, taskActivityId: number) => {
         if (subId && window.electron && taskActivityId) {
-            window.electron.send('start-monitoring', MONITORING_INTERVAL_MS, subId, workDiaryID, taskActivityId);
+            window.electron.send('start-monitoring', intervel*1000, subId, workDiaryID, taskActivityId);
         }
     }, []);
     const stopMonitoring = useCallback((subId: string, workDiaryID: number, taskActivityId: number) => {
@@ -41,7 +39,6 @@ export const useMonitoring = (): {
     useEffect(() => {
         if (!window.electron) return;
         const handler = (data: ActivityData) => {
-            console.log("dataaa", data);
 
             if (data.subtaskId) {
                 setLogEntries(data)
@@ -54,11 +51,5 @@ export const useMonitoring = (): {
         return () => cleanup();
     }, []);
 
-    // useEffect(() => {
-    //     if (latestLogEntry) {
-
-    //         console.log("📸 Log Entries Changed:", latestLogEntry);
-    //     }
-    // }, [latestLogEntry]);
     return { startMonitoring, stopMonitoring, latestLogEntry };
 };

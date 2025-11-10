@@ -61,7 +61,6 @@ export const syncActivityLogs = async (dispatch: (action: any) => any) => {
       start_time: activity.startTime,
       end_time: activity.endTime
     }
-    console.log("payload",payload)
     const formData = new FormData()
     formData.append("data", JSON.stringify(payload))
     const file = base64ToFile(activity.screenshot, "screenshot.png");

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { format } from 'date-fns';
+import { useAppSelector } from '@/store/hooks';
 
 interface TimeContextType {
   punchInTime: string | null;
@@ -11,7 +12,7 @@ interface TimeContextType {
   startTimer: (subtaskId: string) => void;
   stopTimer: () => void;
   setTimerRunning: (isRunning: boolean) => void;
-  workLog: { [subtaskId: string]: number };
+  setTotalWorkSeconds: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const TimeContext = createContext<TimeContextType | undefined>(undefined);
@@ -23,25 +24,31 @@ export const TimeProvider = ({ children }: { children: ReactNode }) => {
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
   const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
   const [currentSubtaskId, setCurrentSubtaskId] = useState<string | null>(null);
-  const [workLog, setWorkLog] = useState<{ [subtaskId: string]: number }>({});
+
+  const workDiary = useAppSelector((sate) => sate.task.workDiary)
 
   useEffect(() => {
     const today = new Date().toDateString();
     const storedPunchInDate = localStorage.getItem('punchInDate');
-    
+
     if (storedPunchInDate === today) {
       setPunchInTime(localStorage.getItem('punchInTime'));
       const storedTotal = Number(localStorage.getItem('totalWorkSeconds') || 0);
       setTotalWorkSeconds(storedTotal);
-      const storedWorkLog = JSON.parse(localStorage.getItem('workLog') || '{}');
-      setWorkLog(storedWorkLog);
     } else {
       localStorage.removeItem('punchInTime');
       localStorage.removeItem('punchInDate');
       localStorage.removeItem('totalWorkSeconds');
-      localStorage.removeItem('workLog');
     }
   }, []);
+
+  useEffect(() => {
+    if (workDiary?.total_work_time){
+      const [hours, minutes, seconds] = workDiary.total_work_time.split(":").map(Number);
+      const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+      setTotalWorkSeconds(totalSeconds)
+    }
+  }, [workDiary])
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
@@ -50,15 +57,15 @@ export const TimeProvider = ({ children }: { children: ReactNode }) => {
         const now = Date.now();
         const sessionSecs = Math.floor((now - sessionStartTime) / 1000);
         setSessionWorkSeconds(sessionSecs);
-        
-        const storedTotal = Object.values(workLog).reduce((sum, time) => sum + time, 0);
+
+        const storedTotal = Number(localStorage.getItem('totalWorkSeconds') || 0);
         const newTotalWorkTime = storedTotal + sessionSecs;
         setTotalWorkSeconds(newTotalWorkTime)
 
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning, sessionStartTime, workLog, currentSubtaskId]);
+  }, [isTimerRunning, sessionStartTime, currentSubtaskId]);
 
 
   const startTimer = useCallback((subtaskId: string) => {
@@ -77,38 +84,30 @@ export const TimeProvider = ({ children }: { children: ReactNode }) => {
 
   const stopTimer = useCallback(() => {
     if (!sessionStartTime || !currentSubtaskId) return;
-    
-    const sessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
-    
-    const newWorkLog = { ...workLog };
-    newWorkLog[currentSubtaskId] = (newWorkLog[currentSubtaskId] || 0) + sessionDuration;
-    setWorkLog(newWorkLog);
-    localStorage.setItem('workLog', JSON.stringify(newWorkLog));
 
-    const newTotal = Object.values(newWorkLog).reduce((sum, time) => sum + time, 0);
-    setTotalWorkSeconds(newTotal);
+    const newTotal = Number(localStorage.getItem('totalWorkSeconds') || 0);
     localStorage.setItem('totalWorkSeconds', String(newTotal));
 
     setIsTimerRunning(false);
     setSessionStartTime(null);
     setCurrentSubtaskId(null);
     setSessionWorkSeconds(0);
-  }, [sessionStartTime, currentSubtaskId, workLog]);
+  }, [sessionStartTime, currentSubtaskId]);
 
   const setTimerRunning = (isRunning: boolean) => {
     if (isRunning) {
-        if(!isTimerRunning && currentSubtaskId) {
-            startTimer(currentSubtaskId);
-        }
+      if (!isTimerRunning && currentSubtaskId) {
+        startTimer(currentSubtaskId);
+      }
     } else {
-        if(isTimerRunning) {
-            stopTimer();
-        }
+      if (isTimerRunning) {
+        stopTimer();
+      }
     }
   }
 
   return (
-    <TimeContext.Provider value={{ punchInTime, totalWorkSeconds, sessionWorkSeconds, isTimerRunning, startTimer, stopTimer, setTimerRunning, workLog }}>
+    <TimeContext.Provider value={{ punchInTime, totalWorkSeconds, sessionWorkSeconds, isTimerRunning, startTimer, stopTimer, setTimerRunning, setTotalWorkSeconds }}>
       {children}
     </TimeContext.Provider>
   );

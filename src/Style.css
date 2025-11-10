@@ -97,7 +97,6 @@
 
 .input-shadow {
   box-shadow: 0 0 12px 2px rgba(23, 38, 82, 0.35) !important;
-  /* stronger blue glow */
   border: none !important;
   outline: none !important;
   background-color: #fff;
@@ -111,11 +110,6 @@
 
 }
 
-
-
-/* if using custom ring implementation */
-
-/* Border Radius */
 .rounded-lg {
   border-radius: 0.5rem;
 }

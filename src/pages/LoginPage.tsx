@@ -1,4 +1,3 @@
-// src/pages/LoginPage.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
@@ -8,7 +7,6 @@ import { Label } from "../components/ui/label";
 import { LogIn } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";
 import { adminLogin } from "@/store/slices/loginSlice";
-
 
 export default function LoginPage() {
   const dispatch = useAppDispatch();
