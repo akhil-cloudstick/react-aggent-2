@@ -61,7 +61,7 @@ export function setupMonitoringHandlers() {
             const currentTime = new Date();
             const startTime = lastEndTime;
             const endTime = currentTime;
-            lastEndTime = endTime; // update tracker
+            lastEndTime = endTime; 
             const base64Image = await captureScreen();
             const counts = getAndResetActivityCounts();
             const payload = {
