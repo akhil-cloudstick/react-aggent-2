@@ -20,6 +20,8 @@ export function createMainWindow(currentDir) {
         backgroundColor: '#FFFFFF',
         titleBarStyle: 'default',
         icon: path.join(currentDir, 'icon.png'),
+        maximizable: false,
+        resizable: false,
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
@@ -30,23 +32,11 @@ export function createMainWindow(currentDir) {
 
     const startUrl = process.env.ELECTRON_START_URL;
     if (startUrl) {
-        // Development Mode: Works perfectly, loads from Vite server
         win.loadURL(startUrl);
         win.webContents.openDevTools();
     } else {
-        // Production Mode: FIX for reliable cross-platform file loading
-        
-        // 1. In a packaged app, 'currentDir' is 'app-root/electron'.
-        // 2. We move '..' up to 'app-root'.
-        // 3. We look in 'dist' where electron-builder placed the React bundle.
         const htmlPath = path.join(currentDir, '..', 'dist', 'index.html');
-        
-        // The previous line replaces: 
-        // const appPath = app.getAppPath();
-        // const htmlPath = path.join(appPath, 'dist', 'index.html');
-
         win.loadFile(htmlPath);
-        win.webContents.openDevTools();
     }
 }
 

@@ -9,8 +9,7 @@ export const initialActivityCounts = {
 export const IPC_CHANNELS = {
     START_MONITORING: 'start-monitoring',
     STOP_MONITORING: 'stop-monitoring',
-    PERIODIC_DATA: 'periodic-data',
-   
+    PERIODIC_DATA: 'periodic-data', 
 };
 
 export const MIN_MOUSE_MOVEMENT_DISTANCE = 10;
