@@ -99,6 +99,11 @@
       "category": "Utility",
       "icon": "icon.png"
     },
+    "deb": {
+      "depends": [
+        "scrot"
+      ]
+    },
     "mac": {
       "icon": "icon.icns"
     }
