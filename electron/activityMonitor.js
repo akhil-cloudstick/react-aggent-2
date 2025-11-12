@@ -23,20 +23,30 @@ let isMonitoring = false;
 const globalKeyListener = new GlobalKeyListenerConstructor();
 const startGlobalActivityListeners = () => {
     globalKeyListener.addListener((e) => {
+        // console.log("RAW EVENT:", e);
         if (!isMonitoring) return;
-        if (e.state === "DOWN" && e.name) {
-            if (e.name.startsWith('MOUSE ')) {
+        if (e.type === 'mousescroll' && e.wheelDelta !== 0) {
+            // Count the scroll action. You may want to count by 'e.clicks' 
+            // if the library provides it, or simply count once per scroll event.
+            activityCounts.mouseActions++;
+            console.log(`[ACTIVITY LOG] MOUSE SCROLL: Delta=${e.wheelDelta}, Type=${e.type}. Count: ${activityCounts.mouseActions}`);
+            return; // Scroll event handled
+        }
+        if (e.state === "DOWN") {
+
+            // Mouse Clicks (Named or Button-only)
+            if (e.name && e.name.startsWith('MOUSE ')) {
                 activityCounts.mouseActions++;
                 console.log(`[ACTIVITY LOG] MOUSE CLICK: ${e.name}. Count: ${activityCounts.mouseActions}`);
-            }
-            else {
+            } else if (e.name) {
+                // Key Presses
                 activityCounts.keyActions++;
                 console.log(`[ACTIVITY LOG] KEY PRESS: ${e.name}. Count: ${activityCounts.keyActions}`);
+            } else if (e.button) {
+                // Button-only clicks (if they exist outside of named events)
+                activityCounts.mouseActions++;
+                console.log(`[ACTIVITY LOG] MOUSE CLICK (e.button): Button ${e.button}. Count: ${activityCounts.mouseActions}`);
             }
-        }
-        else if (e.state === "DOWN" && e.button) {
-            activityCounts.mouseActions++;
-            console.log(`[ACTIVITY LOG] MOUSE CLICK (e.button): Button ${e.button}. Count: ${activityCounts.mouseActions}`);
         }
     });
 };

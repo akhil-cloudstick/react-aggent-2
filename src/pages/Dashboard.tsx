@@ -12,13 +12,6 @@ import { fetchProjectsWithAssignedSubtasks, submitDailyActivity, DailyActivityPa
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Loader2 } from "lucide-react";
 
-// const formatSeconds = (seconds: number) => {
-// 	const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
-// 	const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
-// 	const s = Math.floor(seconds % 60).toString().padStart(2, "0");
-// 	return `${h}:${m}:${s}`;
-// };
-
 export default function DashboardPage() {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch()

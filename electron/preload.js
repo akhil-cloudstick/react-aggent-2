@@ -1,7 +1,6 @@
-const { contextBridge, ipcRenderer } = require('electron');
+import { contextBridge, ipcRenderer } from 'electron';
 const allowedSendChannels = ['start-monitoring', 'stop-monitoring', 'save-screenshot'];
 const allowedReceiveChannels = ['periodic-data'];
-
 contextBridge.exposeInMainWorld('electron', {
     send: (channel, ...args) => {
         if (allowedSendChannels.includes(channel)) {
@@ -15,6 +14,10 @@ contextBridge.exposeInMainWorld('electron', {
             ipcRenderer.on(channel, safeFunc);
             return () => ipcRenderer.removeListener(channel, safeFunc);
         }
-        return () => {};
-    }
+        return () => { };
+    },
+
+    openExternal: (url) => {
+        ipcRenderer.invoke('open-external', url);
+    },
 });
