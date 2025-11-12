@@ -33,7 +33,6 @@ export function createMainWindow(currentDir) {
             await shell.openExternal(url);
             return { success: true };
         } catch (err) {
-            console.error("Failed to open external link:", err);
             return { success: false, error: err.message };
         }
     });

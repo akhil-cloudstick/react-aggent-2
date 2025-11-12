@@ -78,10 +78,9 @@ function formatTime(date) {
 }
 
 export function setupMonitoringHandlers() {
-    ipcMain.on(IPC_CHANNELS.START_MONITORING, (event, intervalMs, subtaskId, workDiaryID, taskActivityId) => {
+    ipcMain.on(IPC_CHANNELS.START_MONITORING, (event, intervalMs, subtaskId, workDiaryID, taskActivityId) => {        
         if (monitoringInterval) clearInterval(monitoringInterval);
         activateMonitoring();
-        console.log(`Monitoring started for Subtask ${subtaskId} every ${intervalMs / 1000} seconds.`);
         const now = new Date();
         lastEndTime = now;
         captureScreen().then(base64Image => {
@@ -140,7 +139,6 @@ export function setupMonitoringHandlers() {
             monitoringInterval = null;
         }
         lastEndTime = null;
-        console.log('Monitoring stopped.');
     });
 }
 

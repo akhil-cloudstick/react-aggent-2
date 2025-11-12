@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Card, CardContent, CardDescription, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { LogIn } from "lucide-react";
 import { useAppDispatch } from "@/store/hooks";
 import { adminLogin } from "@/store/slices/loginSlice";
+import icon from '../../icon.png';
 
 export default function LoginPage() {
   const dispatch = useAppDispatch();
@@ -59,7 +60,6 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      console.error(err);
       setError("Something went wrong. Please try again later.");
     } finally {
       setLoading(false);
@@ -73,7 +73,7 @@ export default function LoginPage() {
           <div className="text-center px-4 pb-3 pt-5">
             <div className="flex justify-center ">
               <img
-                src="/icon.png"
+                src={icon}
                 alt="CloudHouse Icon"
                 className="h-15 w-auto object-contain"
               />

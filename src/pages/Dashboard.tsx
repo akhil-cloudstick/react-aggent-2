@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "../components/ui/card";
+import { Card,  CardHeader, CardDescription, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
@@ -91,7 +91,6 @@ export default function DashboardPage() {
 			workDiaryID = response?.response?.data?.task_activities[0]?.work_diary_id
 			taskActivityId = response?.response?.data?.task_activities[0]?.id
 		} catch (err) {
-			console.error("Failed to punch in and start task:", err);
 			return;
 		}
 		const intervel = localStorage.getItem('activity_period')
