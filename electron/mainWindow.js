@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen } from 'electron';
+import {  BrowserWindow, ipcMain, shell, screen } from 'electron';
 import path from 'path';
 import { WINDOW_CONFIG } from './constants.js';
 
@@ -22,13 +22,20 @@ export function createMainWindow(currentDir) {
         maximizable: false,
         resizable: false,
         webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
             preload: path.join(currentDir, 'preload.js'),
-            webSecurity: false
+            contextIsolation: true,
+            sandbox: false, 
+            nodeIntegration: false,
+        },
+    });
+    ipcMain.handle('open-external', async (_, url) => {
+        try {
+            await shell.openExternal(url);
+            return { success: true };
+        } catch (err) {
+            return { success: false, error: err.message };
         }
     });
-
     const startUrl = process.env.ELECTRON_START_URL;
     if (startUrl) {
         win.loadURL(startUrl);

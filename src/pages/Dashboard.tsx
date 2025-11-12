@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardDescription, CardTitle } from "../components/ui/card";
+import { Card,  CardHeader, CardDescription, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
@@ -11,13 +11,6 @@ import { useMonitoring } from "@/contexts/MonitoringContext";
 import { fetchProjectsWithAssignedSubtasks, submitDailyActivity, DailyActivityPayload, fetchDailyActivity } from "@/store/slices/taskSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { Loader2 } from "lucide-react";
-
-// const formatSeconds = (seconds: number) => {
-// 	const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
-// 	const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
-// 	const s = Math.floor(seconds % 60).toString().padStart(2, "0");
-// 	return `${h}:${m}:${s}`;
-// };
 
 export default function DashboardPage() {
 	const navigate = useNavigate();
@@ -98,7 +91,6 @@ export default function DashboardPage() {
 			workDiaryID = response?.response?.data?.task_activities[0]?.work_diary_id
 			taskActivityId = response?.response?.data?.task_activities[0]?.id
 		} catch (err) {
-			console.error("Failed to punch in and start task:", err);
 			return;
 		}
 		const intervel = localStorage.getItem('activity_period')

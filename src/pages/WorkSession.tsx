@@ -9,7 +9,6 @@ import { useTime } from "../contexts/TimeContext";
 import { X, Clock, Keyboard, MousePointerClick, LogOut } from "lucide-react";
 import { useMonitoring } from "@/contexts/MonitoringContext";
 
-
 const formatSeconds = (seconds: number) => {
   const h = Math.floor(seconds / 3600).toString().padStart(2, "0");
   const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
@@ -18,6 +17,7 @@ const formatSeconds = (seconds: number) => {
 };
 
 export default function WorkSessionPage() {
+
   const { subtaskId, workDiaryId, taskActivityId } = useParams<{ subtaskId: string, workDiaryId: string, taskActivityId: string }>();
   const navigate = useNavigate();
   const { sessionWorkSeconds, isTimerRunning, setTimerRunning, startTimer, stopTimer } = useTime();
@@ -30,6 +30,17 @@ export default function WorkSessionPage() {
       localStorage.setItem("workDiaryId", workDiaryId)
     }
   }, [subtaskId, taskActivityId])
+
+  function openExternalLink() {
+    const url = 'https://clientportal.cloudhousetechnologies.com/support';
+    if (window.electron?.openExternal) {
+      window.electron.openExternal(url);
+    } else {
+      console.warn(`Electron bridge not available — opening URL in web context: ${url}`);
+      window.open(url, '_blank');
+    }
+  }
+
   const handleToggle = (isRunning: boolean) => {
     setTimerRunning(isRunning);
     if (!isRunning) {
@@ -119,7 +130,7 @@ export default function WorkSessionPage() {
           <p className="text-xs text-muted-foreground">Subtask Time</p>
           <p className="text-lg font-semibold tabular-nums">{formatSeconds(totalSubtaskTime)}</p>
         </div>
-        <Button variant="outline">Work Diary</Button>
+        <Button variant="outline" onClick={openExternalLink}>Work Diary</Button>
       </div>
 
     </div>

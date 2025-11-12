@@ -34,6 +34,7 @@ export const adminLogin = createAsyncThunk(
       if (data.success && data.response?.id) {
         localStorage.setItem("userId", String(data.response.id));
         localStorage.setItem("employee", String(data.response.full_name));
+        localStorage.setItem("token", `${data.response.id}-${data.response.full_name}`);
       }
 
       return data;

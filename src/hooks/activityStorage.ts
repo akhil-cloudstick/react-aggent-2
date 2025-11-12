@@ -22,7 +22,6 @@ export const saveActivity = (data: ActivityData) => {
     parsed.push(data);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(parsed));
   } catch (err) {
-    console.error("❌ Failed to save activity:", err);
   }
 };
 
@@ -31,7 +30,6 @@ export const getAllActivities = (): ActivityData[] => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (err) {
-    console.error("❌ Failed to parse activities:", err);
     return [];
   }
 };

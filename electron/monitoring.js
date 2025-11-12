@@ -53,10 +53,8 @@ const captureScreenLinuxNative = () => {
 const captureScreen = () => {
     const platform = process.platform;
     if (platform === 'linux') {
-        console.log("Running native Linux capture (scrot/grim)");
         return captureScreenLinuxNative();
     } else if (platform === 'win32' || platform === 'darwin') {
-        console.log("Running Electron API capture (Windows/macOS)");
         return captureScreenElectronAPI();
     } else {
         console.error(`Screen capture not supported on platform: ${platform}`);
@@ -75,17 +73,14 @@ const showScreenshotNotification = () => {
     notification.show();
 };
 
-
 function formatTime(date) {
     return date.toLocaleTimeString('en-GB', { hour12: false });
 }
 
-
 export function setupMonitoringHandlers() {
-    ipcMain.on(IPC_CHANNELS.START_MONITORING, (event, intervalMs, subtaskId, workDiaryID, taskActivityId) => {
+    ipcMain.on(IPC_CHANNELS.START_MONITORING, (event, intervalMs, subtaskId, workDiaryID, taskActivityId) => {        
         if (monitoringInterval) clearInterval(monitoringInterval);
         activateMonitoring();
-        console.log(`Monitoring started for Subtask ${subtaskId} every ${intervalMs / 1000} seconds.`);
         const now = new Date();
         lastEndTime = now;
         captureScreen().then(base64Image => {
@@ -144,10 +139,8 @@ export function setupMonitoringHandlers() {
             monitoringInterval = null;
         }
         lastEndTime = null;
-        console.log('Monitoring stopped.');
     });
 }
-
 
 export function cleanupMonitoring() {
     if (monitoringInterval) {
