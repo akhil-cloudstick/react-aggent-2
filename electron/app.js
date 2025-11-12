@@ -6,13 +6,6 @@ import { setupMonitoringHandlers, cleanupMonitoring } from './monitoring.js';
 const __filename = fileURLToPath(import.meta.url);
 const currentDir = path.dirname(__filename);
 
-// app.disableHardwareAcceleration();
-// app.commandLine.appendSwitch('no-sandbox');
-// app.commandLine.appendSwitch('disable-gpu');
-// app.commandLine.appendSwitch('disable-software-rasterizer');
-// app.commandLine.appendSwitch('in-process-gpu');
-// app.commandLine.appendSwitch('enable-features', 'UseOzonePlatform');
-// app.commandLine.appendSwitch('ozone-platform', 'x11');
 app.setName('CloudHouse Agent');
 app.setAppUserModelId('CloudHouse Agent');
 

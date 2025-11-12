@@ -35,7 +35,7 @@ const Header: React.FC = () => {
 
 
   return (
-    <header className="flex-shrink-0 bg-card p-3 shadow-md">
+    <header  className="sticky top-0 z-50 shrink-0 p-3 px-4 shadow-md bg-white">
       <div className="flex justify-between text-sm font-medium">
         <div className="flex flex-col items-center">
           <span className="text-xs text-muted-foreground">Punch-in</span>

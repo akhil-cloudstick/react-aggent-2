@@ -67,56 +67,61 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full items-center justify-center bg-background">
-      <div className="w-full overflow-hidden rounded-lg " style={{ maxWidth: '300px', minWidth: '300px' }}>
-        <div className="flex h-full flex-col" style={{ aspectRatio: '5 / 8' }}>
-          <Card className="flex h-full flex-col border-0">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-primary">CloudHouse Agent</CardTitle>
-              <CardDescription>Sign in to start your session</CardDescription>
-            </CardHeader>
-            <form onSubmit={handleLogin} className="flex flex-1 flex-col">
-              <CardContent className="flex-1 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter email"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter password"
-                    required
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-                  disabled={loading}
-                >
-                  <LogIn className="mr-2 h-4 w-4" />
-                  Login
-                </Button>
+    <main className="flex min-h-screen w-full  bg-background">
+      <div className="w-full rounded-lg">
+        <Card className="flex h-full flex-col shadow-none border-0  ">
+          <div className="text-center px-4 pb-3 pt-5">
+            <div className="flex justify-center ">
+              <img
+                src="/icon.png"
+                alt="CloudHouse Icon"
+                className="h-15 w-auto object-contain"
+              />
+            </div>
+            <CardTitle className="text-2xl font-bold text-primary">CloudHouse Agent</CardTitle>
+            <CardDescription>Sign in to start your session</CardDescription>
+          </div>
+          <form onSubmit={handleLogin} className="flex flex-1 flex-col">
+            <CardContent className="flex-1 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter email"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  required
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-4"
+                disabled={loading}
+              >
+                <LogIn className="mr-2 h-4 w-4" />
+                Login
+              </Button>
 
-                {error && (
-                  <p className="text-red-500 text-sm text-center mt-2">
-                    {error}
-                  </p>
-                )}
-              </CardContent>
-            </form>
-          </Card>
-        </div>
+              {error && (
+                <p className="text-red-500 text-sm text-center mt-2">
+                  {error}
+                </p>
+              )}
+            </CardContent>
+          </form>
+        </Card>
       </div>
     </main>
   );

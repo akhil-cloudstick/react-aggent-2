@@ -39,7 +39,7 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="flex-shrink-0 p-2">
+    <footer className="sticky bottom-0 z-50 shrink-0 p-2 bg-white">
       <div className="flex justify-end">
         <Button
           variant="ghost"

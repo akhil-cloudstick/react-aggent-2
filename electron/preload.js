@@ -1,13 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron');
 const allowedSendChannels = ['start-monitoring', 'stop-monitoring', 'save-screenshot'];
-
-
-const allowedReceiveChannels = [
-    'periodic-data'
-];
+const allowedReceiveChannels = ['periodic-data'];
 
 contextBridge.exposeInMainWorld('electron', {
-    send: (channel, ...args) => { 
+    send: (channel, ...args) => {
         if (allowedSendChannels.includes(channel)) {
             ipcRenderer.send(channel, ...args);
         }

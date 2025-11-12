@@ -129,7 +129,7 @@ export default function DashboardPage() {
 	};
 
 	return (
-		<div className="space-y-6 flex flex-col h-full">
+		<div className="space-y-6 flex flex-col h-full ">
 			<div className="space-y-2">
 				<h2 className="text-2xl font-bold">Hi, {username}</h2>
 			</div>
@@ -237,7 +237,7 @@ export default function DashboardPage() {
 							<Badge
 								key={taskActivity.id}
 								variant="secondary"
-								className="cursor-pointer px-2 py-0.5 text-xs !bg-blue-600 hover:!bg-blue-800/70"
+								className="cursor-pointer px-2 py-0.5 text-xs bg-blue-600! hover:bg-blue-800/70!"
 								onClick={() => {
 									if (localStorage.getItem('activity_period') && taskActivity.sub_task_id && taskActivity.work_diary_id) {
 										startTimer(taskActivity.id.toString());

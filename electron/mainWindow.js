@@ -17,7 +17,6 @@ export function createMainWindow(currentDir) {
         x: xPos,
         y: yPos,
         frame: true,
-        backgroundColor: '#FFFFFF',
         titleBarStyle: 'default',
         icon: path.join(currentDir, 'icon.png'),
         maximizable: false,
